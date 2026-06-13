@@ -44,10 +44,12 @@ def main():
     template = open(os.path.join(HERE, "template.html"), encoding="utf-8").read()
     data = json.load(open(os.path.join(HERE, "beslut.json"), encoding="utf-8"))
     logo = "data:image/png;base64," + b64(os.path.join(HERE, "okn-logo.png"))
+    favicon = "data:image/png;base64," + b64(os.path.join(HERE, "okn-favicon.png"))
 
     html = template
     html = html.replace("/*@FONTFACE@*/", fontface_css())
     html = html.replace("@LOGO@", logo)
+    html = html.replace("@FAVICON@", favicon)
     # data sist (kan innehålla tecken som krockar med replace-mönster -> använd lambda)
     html = html.replace("@DATA@", json.dumps(data, ensure_ascii=False))
 
