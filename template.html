@@ -20,7 +20,8 @@
        font:400 1.0625rem/1.5 var(--sans);}
   header.top{background:#fff;border-bottom:3px solid var(--brand);padding:22px 20px 20px;}
   .wrap{max-width:920px;margin:0 auto;padding:0 16px;}
-  header.top .logo{height:56px;width:auto;display:block;margin-bottom:14px}
+  header.top .logo{height:56px;width:auto;display:block;margin-bottom:14px;cursor:pointer}
+  header.top .logo:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:4px}
   header.top h1{margin:0;font-size:1.5rem;font-weight:800;letter-spacing:.2px;color:var(--brand)}
   header.top p{margin:6px 0 0;font-size:.95rem;color:var(--muted)}
   .count-pill{display:inline-flex;align-items:center;gap:7px;margin-top:12px;border:0;
@@ -88,7 +89,7 @@
 <body>
 <header class="top">
   <div class="wrap">
-    <img class="logo" src="@LOGO@" alt="Skolväsendets överklagandenämnd">
+    <img class="logo" id="logo" src="@LOGO@" alt="Skolväsendets överklagandenämnd – till startläget" title="Till startläget" role="button" tabindex="0">
     <h1>Vägledande beslut</h1>
     <p>Alla vägledande beslut samlade, sökbara och filtrerbara. Skriv minst tre bokstäver för förslag.</p>
     <button type="button" class="count-pill" id="countPill">… beslut</button>
@@ -316,7 +317,15 @@ document.addEventListener("click",e=>{
     const op=f.classList.toggle("open"); tg.textContent= op?"Dölj beslutet ▴":"Visa hela beslutet ▾"; }
 });
 [elCat,elOut,elYear].forEach(s=>s.addEventListener("change",()=>{ render(); buildAc(); }));
-$("#reset").addEventListener("click",()=>{ elQ.value=""; elCat.value=""; elOut.value=""; elYear.value=""; revealed=false; elPill.classList.remove("revealed"); closeAc(); render(); elQ.focus(); });
+function resetToStart(scroll){
+  elQ.value=""; elCat.value=""; elOut.value=""; elYear.value="";
+  revealed=false; elPill.classList.remove("revealed"); closeAc(); render();
+  if(scroll) window.scrollTo({top:0,behavior:"smooth"});
+}
+$("#reset").addEventListener("click",()=>{ resetToStart(false); elQ.focus(); });
+const elLogo = $("#logo");
+elLogo.addEventListener("click",()=>resetToStart(true));
+elLogo.addEventListener("keydown",e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); resetToStart(true); } });
 
 render();
 </script>
