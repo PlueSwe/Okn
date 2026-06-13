@@ -65,4 +65,7 @@ jobs:
           curl --ssl-reqd -k --fail --connect-timeout 30 \
                --user "$FTP_USER:$FTP_PASSWORD" \
                -T index.html "ftp://$FTP_HOST/${FTP_DIR}index.html"
-          echo "index.html uppladdad."
+          curl --ssl-reqd -k --fail --connect-timeout 30 \
+               --user "$FTP_USER:$FTP_PASSWORD" \
+               -T .htaccess "ftp://$FTP_HOST/${FTP_DIR}.htaccess"
+          echo "index.html och .htaccess uppladdade."

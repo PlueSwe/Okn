@@ -1,0 +1,5 @@
+# Tvinga HTTPS – omdirigera all trafik från http till https (301).
+RewriteEngine On
+RewriteCond %{HTTPS} !=on [OR]
+RewriteCond %{HTTP:X-Forwarded-Proto} =http
+RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
