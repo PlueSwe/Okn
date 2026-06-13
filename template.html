@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vägledande beslut – Överklagandenämnden (sökbart)</title>
+<style>
+/*@FONTFACE@*/
+  :root{
+    --bg:#f8f9fa; --card:#fff; --ink:#212529; --muted:#6c757d; --line:#dee2e6;
+    --brand:#8b212a; --brand-700:#6f1a22; --brand-soft:#f5e7e8;
+    --accent:#006399; --accent-soft:#e3eef5;
+    --ok:#137870; --ok-soft:#e6f5f2; --warn:#8b212a; --warn-soft:#f5e7e8;
+    --hi:#fff3bf; --shadow:0 1px 3px rgba(16,24,40,.08),0 1px 2px rgba(16,24,40,.04);
+    --sans:"Mulish",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+       font:400 1.0625rem/1.5 var(--sans);}
+  header.top{background:#fff;border-bottom:3px solid var(--brand);padding:22px 20px 20px;}
+  .wrap{max-width:920px;margin:0 auto;padding:0 16px;}
+  header.top .logo{height:56px;width:auto;display:block;margin-bottom:14px}
+  header.top h1{margin:0;font-size:1.5rem;font-weight:800;letter-spacing:.2px;color:var(--brand)}
+  header.top p{margin:6px 0 0;font-size:.95rem;color:var(--muted)}
+  .count-pill{display:inline-block;margin-top:12px;background:var(--brand-soft);color:var(--brand-700);
+       padding:3px 12px;border-radius:999px;font-size:.85rem;font-weight:700}
+
+  .searchbar{position:relative;margin:18px 0 6px}
+  .searchbar input{width:100%;padding:15px 16px 15px 46px;font-size:1.05rem;border:1px solid var(--line);
+       border-radius:12px;background:var(--card) url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="%235b6675" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="9" r="7"/><path d="M14 14l5 5"/></svg>') no-repeat 14px center;
+       box-shadow:var(--shadow);outline:none}
+  .searchbar input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+  .hint{font-size:.82rem;color:var(--muted);margin:2px 4px 0}
+
+  .ac{position:absolute;z-index:30;left:0;right:0;top:calc(100% + 6px);background:var(--card);
+      border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 28px rgba(16,24,40,.16);
+      overflow:hidden;display:none}
+  .ac.open{display:block}
+  .ac-item{display:block;width:100%;text-align:left;border:0;background:none;cursor:pointer;
+      padding:11px 14px;border-bottom:1px solid var(--line);font:inherit}
+  .ac-item:last-child{border-bottom:0}
+  .ac-item:hover,.ac-item.active{background:var(--accent-soft)}
+  .ac-item .t{font-weight:600;color:var(--ink);font-size:.96rem}
+  .ac-item .m{font-size:.8rem;color:var(--muted);margin-top:2px}
+  .ac-empty{padding:14px;color:var(--muted);font-size:.9rem}
+
+  .filters{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0 4px}
+  .filters select{padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);
+      font:inherit;color:var(--ink);box-shadow:var(--shadow)}
+  .filters .reset{margin-left:auto;border:0;background:none;color:var(--accent);cursor:pointer;font:inherit;padding:9px 4px}
+  .resultmeta{font-size:.88rem;color:var(--muted);margin:14px 4px 6px}
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;
+      margin:12px 0;box-shadow:var(--shadow);scroll-margin-top:14px}
+  .card.flash{animation:flash 1.6s ease}
+  @keyframes flash{0%{box-shadow:0 0 0 3px var(--accent)}100%{box-shadow:var(--shadow)}}
+  .badges{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+  .badge{font-size:.74rem;font-weight:700;padding:3px 9px;border-radius:999px;background:var(--brand-soft);color:var(--brand-700)}
+  .badge.topic{background:#eef1f5;color:var(--muted)}
+  .badge.out{background:var(--ok-soft);color:var(--ok)}
+  .badge.out.warn{background:var(--warn-soft);color:var(--warn)}
+  .card h2{margin:.1rem 0 .5rem;font-size:1.12rem;font-weight:700;line-height:1.35}
+  .meta{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:.86rem;color:var(--muted);
+      border-top:1px dashed var(--line);border-bottom:1px dashed var(--line);padding:9px 0;margin:8px 0}
+  .meta b{color:var(--ink);font-weight:600}
+  .meta .na{font-style:italic;opacity:.8}
+  .snippet{color:#39424f;font-size:.95rem;margin:8px 0 4px}
+  .actions{display:flex;gap:14px;align-items:center;margin-top:6px}
+  .toggle{border:0;background:none;color:var(--accent);font:inherit;font-weight:600;cursor:pointer;padding:4px 0}
+  .src{color:var(--muted);font-size:.85rem;text-decoration:none}
+  .src:hover{color:var(--accent);text-decoration:underline}
+  .full{display:none;margin-top:10px;border-top:1px solid var(--line);padding-top:10px;
+      white-space:pre-wrap;font-size:.93rem;color:#2a313c}
+  .full.open{display:block}
+  mark{background:var(--hi);padding:0 1px;border-radius:2px}
+  .empty{text-align:center;color:var(--muted);padding:48px 10px}
+  footer{color:var(--muted);font-size:.8rem;text-align:center;padding:26px 16px 40px}
+  footer a{color:var(--accent)}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <img class="logo" src="@LOGO@" alt="Skolväsendets överklagandenämnd">
+    <h1>Vägledande beslut</h1>
+    <p>Alla vägledande beslut samlade, sökbara och filtrerbara. Skriv minst tre bokstäver för förslag.</p>
+    <span class="count-pill" id="countPill">… beslut</span>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="searchbar">
+    <input id="q" type="text" autocomplete="off" spellcheck="false"
+           placeholder="Sök på rättsfråga, ord, diarienummer …" aria-label="Sök beslut">
+    <div class="ac" id="ac" role="listbox"></div>
+  </div>
+  <div class="hint">Tips: skriv t.ex. <i>sko</i>, <i>mot</i> eller ett diarienummer som <i>2018:575</i>. Klicka på ett förslag för att öppna exakt beslut.</div>
+
+  <div class="filters">
+    <select id="fCat" aria-label="Filtrera på skolform"><option value="">Alla skolformer</option></select>
+    <select id="fOut" aria-label="Filtrera på utfall"><option value="">Alla utfall</option></select>
+    <select id="fYear" aria-label="Filtrera på år"><option value="">Alla år</option></select>
+    <button class="reset" id="reset">Återställ</button>
+  </div>
+
+  <div class="resultmeta" id="resultMeta"></div>
+  <div id="list"></div>
+</main>
+
+<footer>
+  Data hämtad från <a href="https://www.overklagandenamnden.se/vagledande-beslut/" target="_blank" rel="noopener">overklagandenamnden.se</a>.
+  Alla beslut är avidentifierade. Varje träff länkar till källan. Vid avvikelse gäller alltid originalbeslutet.
+</footer>
+
+<script>window.OUN_BESLUT = @DATA@;</script>
+<script>
+const DATA = (window.OUN_BESLUT || []).map((d,i)=>({...d, _i:i}));
+const OUT_LABEL = {avslår:"Avslag", bifaller:"Bifall", avvisar:"Avvisning",
+  undanröjer:"Undanröjer", återförvisar:"Återförvisar", upphäver:"Upphäver"};
+const OUT_POSITIVE = new Set(["bifaller","upphäver","undanröjer","återförvisar"]);
+
+// accent/case-insensitiv normalisering för matchning
+const norm = s => (s||"").toLowerCase()
+  .normalize("NFD").replace(/[̀-ͯ]/g,"")
+  .replace(/ø/g,"o");
+function yearOf(d){ return (d.oknDate||d.appealedDate||"").slice(0,4); }
+function escapeHtml(s){ return (s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+function fmtDate(s){ return s || ""; }
+
+// bygg sökindex
+DATA.forEach(d=>{
+  d._title = d.headnote || "(utan rubrik)";
+  d._hay = norm([d.headnote,d.dnr,d.categoryLabel,d.topicLabel,d.outcome,d.text].join("  "));
+  d._titleN = norm(d._title);
+  d._year = yearOf(d);
+});
+
+const $ = s=>document.querySelector(s);
+const elQ=$("#q"), elAc=$("#ac"), elList=$("#list"), elMeta=$("#resultMeta"),
+      elCat=$("#fCat"), elOut=$("#fOut"), elYear=$("#fYear");
+
+$("#countPill").textContent = DATA.length + " vägledande beslut";
+
+// fyll filter
+[...new Set(DATA.map(d=>d.categoryLabel))].sort((a,b)=>a.localeCompare(b,"sv"))
+  .forEach(c=>elCat.add(new Option(c,c)));
+[...new Set(DATA.map(d=>d.outcome).filter(Boolean))]
+  .sort((a,b)=>(OUT_LABEL[a]||a).localeCompare(OUT_LABEL[b]||b,"sv"))
+  .forEach(o=>elOut.add(new Option(OUT_LABEL[o]||o,o)));
+[...new Set(DATA.map(d=>d._year).filter(Boolean))].sort((a,b)=>b-a)
+  .forEach(y=>elYear.add(new Option(y,y)));
+
+let acItems=[], acIndex=-1;
+
+function score(d, qn){
+  if(!qn) return 0;
+  const ti=d._titleN.indexOf(qn);
+  if(ti===0) return 100;            // titel börjar med söktermen
+  if(ti>0)  return 70;              // titel innehåller
+  if((d.dnr||"").toLowerCase().includes(qn)) return 65;
+  if(norm(d.categoryLabel).includes(qn)||norm(d.topicLabel).includes(qn)) return 50;
+  if(d._hay.includes(qn)) return 30; // träff i brödtext
+  return 0;
+}
+
+function highlight(text, qn){
+  if(!qn) return escapeHtml(text);
+  const tn=norm(text); let out="",last=0,idx;
+  while((idx=tn.indexOf(qn,last))!==-1){
+    out+=escapeHtml(text.slice(last,idx))+"<mark>"+escapeHtml(text.slice(idx,idx+qn.length))+"</mark>";
+    last=idx+qn.length;
+  }
+  return out+escapeHtml(text.slice(last));
+}
+
+function snippetAround(text, qn){
+  const tn=norm(text);
+  let idx = qn ? tn.indexOf(qn) : -1;
+  let start = idx>80 ? idx-70 : 0;
+  let slice = text.slice(start, start+230).trim();
+  if(start>0) slice="… "+slice;
+  if(start+230<text.length) slice+=" …";
+  return highlight(slice, qn);
+}
+
+function currentFilters(){
+  return {cat:elCat.value, out:elOut.value, year:elYear.value, qn:norm(elQ.value.trim())};
+}
+
+function filtered(){
+  const f=currentFilters();
+  let r=DATA.filter(d=>
+    (!f.cat || d.categoryLabel===f.cat) &&
+    (!f.out || d.outcome===f.out) &&
+    (!f.year|| d._year===f.year) &&
+    (!f.qn  || score(d,f.qn)>0));
+  if(f.qn) r.sort((a,b)=>score(b,f.qn)-score(a,f.qn) || (b.oknDate||"").localeCompare(a.oknDate||""));
+  else     r.sort((a,b)=>(b.oknDate||b.appealedDate||"").localeCompare(a.oknDate||a.appealedDate||""));
+  return {rows:r, f};
+}
+
+function card(d, qn){
+  const out = d.outcome ? `<span class="badge out ${OUT_POSITIVE.has(d.outcome)?'':'warn'}">${OUT_LABEL[d.outcome]||d.outcome}</span>`:"";
+  const topic = d.topicLabel ? `<span class="badge topic">${escapeHtml(d.topicLabel)}</span>`:"";
+  const dnr = d.dnr ? `<span><b>Diarienr:</b> ${escapeHtml(d.dnr)}</span>`
+                    : `<span class="na">Diarienummer ej publicerat</span>`;
+  const okn = d.oknDate ? `<span><b>Beslutsdatum (nämnden):</b> ${fmtDate(d.oknDate)}</span>` : "";
+  const app = d.appealedDate ? `<span><b>Överklagat beslut:</b> ${fmtDate(d.appealedDate)}</span>` : "";
+  return `<article class="card" id="card-${d._i}" data-i="${d._i}">
+    <div class="badges"><span class="badge">${escapeHtml(d.categoryLabel)}</span>${topic}${out}</div>
+    <h2>${highlight(d._title, qn)}</h2>
+    <div class="meta">${dnr}${okn}${app}</div>
+    <div class="snippet">${snippetAround(d.text, qn)}</div>
+    <div class="actions">
+      <button class="toggle" data-i="${d._i}">Visa hela beslutet ▾</button>
+      <a class="src" href="${escapeHtml(d.sourceUrl)}" target="_blank" rel="noopener">Öppna på overklagandenamnden.se ↗</a>
+    </div>
+    <div class="full" id="full-${d._i}">${highlight(d.text, qn)}</div>
+  </article>`;
+}
+
+function render(){
+  const {rows,f}=filtered();
+  elMeta.textContent = rows.length
+    ? `${rows.length} beslut${f.qn||f.cat||f.out||f.year?" (filtrerat)":""}`
+    : "";
+  elList.innerHTML = rows.length
+    ? rows.map(d=>card(d,f.qn)).join("")
+    : `<div class="empty">Inga beslut matchar din sökning.<br>Prova färre bokstäver eller återställ filtren.</div>`;
+}
+
+// autocomplete
+function buildAc(){
+  const qn=norm(elQ.value.trim());
+  if(qn.length<3){ closeAc(); return; }
+  const f=currentFilters();
+  acItems = DATA
+    .filter(d=> (!f.cat||d.categoryLabel===f.cat)&&(!f.out||d.outcome===f.out)&&(!f.year||d._year===f.year))
+    .map(d=>({d,s:score(d,qn)})).filter(x=>x.s>0)
+    .sort((a,b)=>b.s-a.s || (b.d.oknDate||"").localeCompare(a.d.oknDate||""))
+    .slice(0,8).map(x=>x.d);
+  acIndex=-1;
+  if(!acItems.length){ elAc.innerHTML=`<div class="ac-empty">Inga förslag för “${escapeHtml(elQ.value.trim())}”.</div>`; elAc.classList.add("open"); return; }
+  elAc.innerHTML = acItems.map((d,i)=>{
+    const date = d.oknDate ? d.oknDate : (d._year||"år ej angivet");
+    const dnr = d.dnr ? " · Dnr "+d.dnr : "";
+    return `<button class="ac-item" role="option" data-i="${d._i}" data-pos="${i}">
+      <div class="t">${highlight(d._title, qn)}</div>
+      <div class="m">${escapeHtml(d.categoryLabel)}${d.topicLabel?" · "+escapeHtml(d.topicLabel):""} · ${date}${dnr}</div>
+    </button>`;
+  }).join("");
+  elAc.classList.add("open");
+}
+function closeAc(){ elAc.classList.remove("open"); elAc.innerHTML=""; acItems=[]; acIndex=-1; }
+
+function openDecision(i){
+  closeAc();
+  // se till att kortet finns i listan (rensa filter som döljer det vid behov sker ej automatiskt)
+  let cardEl=document.getElementById("card-"+i);
+  if(!cardEl){ render(); cardEl=document.getElementById("card-"+i); }
+  if(!cardEl) return;
+  const full=document.getElementById("full-"+i);
+  if(full && !full.classList.contains("open")){
+    full.classList.add("open");
+    const btn=cardEl.querySelector(".toggle"); if(btn) btn.textContent="Dölj beslutet ▴";
+  }
+  cardEl.scrollIntoView({behavior:"smooth",block:"start"});
+  cardEl.classList.remove("flash"); void cardEl.offsetWidth; cardEl.classList.add("flash");
+}
+
+// händelser
+let t;
+elQ.addEventListener("input",()=>{ clearTimeout(t); t=setTimeout(()=>{ render(); buildAc(); },120); });
+elQ.addEventListener("focus", buildAc);
+elQ.addEventListener("keydown",e=>{
+  if(!elAc.classList.contains("open")||!acItems.length){
+    if(e.key==="Enter"){ closeAc(); } return;
+  }
+  if(e.key==="ArrowDown"){ e.preventDefault(); acIndex=(acIndex+1)%acItems.length; paintAc(); }
+  else if(e.key==="ArrowUp"){ e.preventDefault(); acIndex=(acIndex-1+acItems.length)%acItems.length; paintAc(); }
+  else if(e.key==="Enter"){ e.preventDefault(); openDecision(acItems[Math.max(0,acIndex)]._i); }
+  else if(e.key==="Escape"){ closeAc(); }
+});
+function paintAc(){
+  [...elAc.querySelectorAll(".ac-item")].forEach((el,i)=>el.classList.toggle("active",i===acIndex));
+}
+elAc.addEventListener("mousedown",e=>{ // mousedown så blur inte stänger först
+  const it=e.target.closest(".ac-item"); if(!it) return;
+  e.preventDefault(); openDecision(+it.dataset.i);
+});
+document.addEventListener("click",e=>{
+  if(!e.target.closest(".searchbar")) closeAc();
+  const tg=e.target.closest(".toggle");
+  if(tg){ const f=document.getElementById("full-"+tg.dataset.i);
+    const op=f.classList.toggle("open"); tg.textContent= op?"Dölj beslutet ▴":"Visa hela beslutet ▾"; }
+});
+[elCat,elOut,elYear].forEach(s=>s.addEventListener("change",()=>{ render(); buildAc(); }));
+$("#reset").addEventListener("click",()=>{ elQ.value=""; elCat.value=""; elOut.value=""; elYear.value=""; closeAc(); render(); elQ.focus(); });
+
+render();
+</script>
+</body>
+</html>

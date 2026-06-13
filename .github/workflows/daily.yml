@@ -1,0 +1,68 @@
+name: Daglig uppdatering av vägledande beslut
+
+# Kollar en gång om dagen om Överklagandenämnden lagt upp nya vägledande beslut.
+# Hittas nya/ändrade beslut: bygger om index.html, committar, och deployar via FTP.
+# Kan även köras manuellt via "Run workflow".
+
+on:
+  schedule:
+    - cron: "0 5 * * *"      # 05:00 UTC dagligen (~07:00 svensk sommartid)
+  workflow_dispatch:
+
+concurrency:
+  group: daily-update
+  cancel-in-progress: false
+
+permissions:
+  contents: write            # för att kunna committa nya beslut tillbaka
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    env:
+      FTP_HOST: ${{ secrets.FTP_HOST }}
+      FTP_USER: ${{ secrets.FTP_USER }}
+      FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+      FTP_DIR: ${{ secrets.FTP_DIR }}        # t.ex. "public_html/" – tom = serverns rot
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Hämta beslut från overklagandenamnden.se
+        run: python3 scrape.py
+
+      - name: Bygg om den självständiga index.html
+        run: python3 build.py
+
+      - name: Upptäck ändringar
+        id: diff
+        run: |
+          if git diff --quiet -- beslut.json; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "Inga nya eller ändrade beslut."
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "Antal beslut nu: $(python3 -c 'import json;print(len(json.load(open("beslut.json"))))')"
+          fi
+
+      - name: Committa nya beslut
+        if: steps.diff.outputs.changed == 'true'
+        run: |
+          git config user.name  "okn-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add beslut.json data.js index.html
+          git commit -m "Automatisk uppdatering: nya/ändrade vägledande beslut ($(date +%F))"
+          git push
+
+      # Deploy körs alltid (så sajten även återställs om någon ändrat den manuellt),
+      # men hoppas över tyst om FTP-secrets saknas.
+      - name: Deploya till skolklagan.se via FTP
+        if: env.FTP_HOST != ''
+        run: |
+          curl --ssl-reqd -k --fail --connect-timeout 30 \
+               --user "$FTP_USER:$FTP_PASSWORD" \
+               -T index.html "ftp://$FTP_HOST/${FTP_DIR}index.html"
+          echo "index.html uppladdad."
