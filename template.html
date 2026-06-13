@@ -23,8 +23,14 @@
   header.top .logo{height:56px;width:auto;display:block;margin-bottom:14px}
   header.top h1{margin:0;font-size:1.5rem;font-weight:800;letter-spacing:.2px;color:var(--brand)}
   header.top p{margin:6px 0 0;font-size:.95rem;color:var(--muted)}
-  .count-pill{display:inline-block;margin-top:12px;background:var(--brand-soft);color:var(--brand-700);
-       padding:3px 12px;border-radius:999px;font-size:.85rem;font-weight:700}
+  .count-pill{display:inline-flex;align-items:center;gap:7px;margin-top:12px;border:0;
+       background:var(--brand);color:#fff;cursor:pointer;font-family:inherit;
+       padding:7px 16px;border-radius:999px;font-size:.9rem;font-weight:700;transition:background .15s}
+  .count-pill::after{content:"›";font-size:1.05rem;line-height:1;transform:translateY(-1px)}
+  .count-pill:hover{background:var(--brand-700)}
+  .count-pill:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .count-pill.revealed{background:var(--brand-soft);color:var(--brand-700);cursor:default}
+  .count-pill.revealed::after{content:""}
 
   .searchbar{position:relative;margin:18px 0 6px}
   .searchbar input{width:100%;padding:15px 16px 15px 46px;font-size:1.05rem;border:1px solid var(--line);
@@ -85,7 +91,7 @@
     <img class="logo" src="@LOGO@" alt="Skolväsendets överklagandenämnd">
     <h1>Vägledande beslut</h1>
     <p>Alla vägledande beslut samlade, sökbara och filtrerbara. Skriv minst tre bokstäver för förslag.</p>
-    <span class="count-pill" id="countPill">… beslut</span>
+    <button type="button" class="count-pill" id="countPill">… beslut</button>
   </div>
 </header>
 
@@ -140,7 +146,14 @@ const $ = s=>document.querySelector(s);
 const elQ=$("#q"), elAc=$("#ac"), elList=$("#list"), elMeta=$("#resultMeta"),
       elCat=$("#fCat"), elOut=$("#fOut"), elYear=$("#fYear");
 
-$("#countPill").textContent = DATA.length + " vägledande beslut";
+const elPill = $("#countPill");
+elPill.textContent = DATA.length + " vägledande beslut";
+elPill.addEventListener("click",()=>{
+  revealed = true;
+  elPill.classList.add("revealed");
+  render();
+  elMeta.scrollIntoView({behavior:"smooth",block:"start"});
+});
 
 // fyll filter
 [...new Set(DATA.map(d=>d.categoryLabel))].sort((a,b)=>a.localeCompare(b,"sv"))
@@ -151,7 +164,7 @@ $("#countPill").textContent = DATA.length + " vägledande beslut";
 [...new Set(DATA.map(d=>d._year).filter(Boolean))].sort((a,b)=>b-a)
   .forEach(y=>elYear.add(new Option(y,y)));
 
-let acItems=[], acIndex=-1;
+let acItems=[], acIndex=-1, revealed=false;
 
 function score(d, qn){
   if(!qn) return 0;
@@ -222,8 +235,15 @@ function card(d, qn){
 
 function render(){
   const {rows,f}=filtered();
+  const active = f.qn||f.cat||f.out||f.year;
+  // Förstasidan är tom tills man trycker på antalsknappen eller söker/filtrerar.
+  if(!active && !revealed){
+    elMeta.textContent = "";
+    elList.innerHTML = `<div class="empty">Tryck på <b>“${DATA.length} vägledande beslut”</b> ovan för att visa alla – eller sök/filtrera.</div>`;
+    return;
+  }
   elMeta.textContent = rows.length
-    ? `${rows.length} beslut${f.qn||f.cat||f.out||f.year?" (filtrerat)":""}`
+    ? `${rows.length} beslut${active?" (filtrerat)":""}`
     : "";
   elList.innerHTML = rows.length
     ? rows.map(d=>card(d,f.qn)).join("")
@@ -258,7 +278,7 @@ function openDecision(i){
   closeAc();
   // se till att kortet finns i listan (rensa filter som döljer det vid behov sker ej automatiskt)
   let cardEl=document.getElementById("card-"+i);
-  if(!cardEl){ render(); cardEl=document.getElementById("card-"+i); }
+  if(!cardEl){ revealed=true; elPill.classList.add("revealed"); render(); cardEl=document.getElementById("card-"+i); }
   if(!cardEl) return;
   const full=document.getElementById("full-"+i);
   if(full && !full.classList.contains("open")){
@@ -296,7 +316,7 @@ document.addEventListener("click",e=>{
     const op=f.classList.toggle("open"); tg.textContent= op?"Dölj beslutet ▴":"Visa hela beslutet ▾"; }
 });
 [elCat,elOut,elYear].forEach(s=>s.addEventListener("change",()=>{ render(); buildAc(); }));
-$("#reset").addEventListener("click",()=>{ elQ.value=""; elCat.value=""; elOut.value=""; elYear.value=""; closeAc(); render(); elQ.focus(); });
+$("#reset").addEventListener("click",()=>{ elQ.value=""; elCat.value=""; elOut.value=""; elYear.value=""; revealed=false; elPill.classList.remove("revealed"); closeAc(); render(); elQ.focus(); });
 
 render();
 </script>
