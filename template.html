@@ -72,6 +72,7 @@
       border-top:1px dashed var(--line);border-bottom:1px dashed var(--line);padding:9px 0;margin:8px 0}
   .meta b{color:var(--ink);font-weight:600}
   .meta .na{font-style:italic;opacity:.8}
+  .na-dnr{background:var(--hi);color:#7a5b00;padding:1px 7px;border-radius:4px;font-weight:600;font-style:normal}
   .snippet{color:#39424f;font-size:.95rem;margin:8px 0 4px}
   .actions{display:flex;gap:14px;align-items:center;margin-top:6px}
   .toggle{border:0;background:none;color:var(--accent);font:inherit;font-weight:600;cursor:pointer;padding:4px 0}
@@ -217,8 +218,9 @@ function filtered(){
 function card(d, qn){
   const out = d.outcome ? `<span class="badge out ${OUT_POSITIVE.has(d.outcome)?'':'warn'}">${OUT_LABEL[d.outcome]||d.outcome}</span>`:"";
   const topic = d.topicLabel ? `<span class="badge topic">${escapeHtml(d.topicLabel)}</span>`:"";
-  const dnr = d.dnr ? `<span><b>Diarienr:</b> ${escapeHtml(d.dnr)}</span>`
-                    : `<span class="na">Diarienummer ej publicerat</span>`;
+  const dnr = `<span><b>Diarienr:</b> ${d.dnr
+                    ? escapeHtml(d.dnr)
+                    : `<mark class="na-dnr">Ej publicerat</mark>`}</span>`;
   const okn = d.oknDate ? `<span><b>Beslutsdatum (nämnden):</b> ${fmtDate(d.oknDate)}</span>` : "";
   const app = d.appealedDate ? `<span><b>Överklagat beslut:</b> ${fmtDate(d.appealedDate)}</span>` : "";
   return `<article class="card" id="card-${d._i}" data-i="${d._i}">
