@@ -141,23 +141,22 @@ def extract(pages):
             headnote = strip_tags_text(bn.group(1)) if bn else ""
             aid = re.search(r'href="#(ReadMoreBlock-\d+)"', html[ws:ws + 400])
             anchor = aid.group(1) if aid else ""
-            # Diarienummer + nämndens beslutsdatum står i en rubrik strax före blocket.
-            # Två format förekommer på sajten, t.ex.:
-            #   "Beslut: 2018-10-18 Dnr: 2018:1034"   (äldre)
-            #   "Beslut: 2025-09-25, dnr 2025:532"     (nyare – komma, gemener, ofta utan kolon)
-            # Kravet på nyckelordet "dnr" gör att lagreferenser som "skollagen (2010:800)"
-            # aldrig misstas för ett diarienummer.
-            pre = html[max(0, ws - 400):ws]
-            md = re.search(r"Beslut:?\s*(\d{4}-\d{2}-\d{2})\D{0,8}dnr:?\s*(\d{4}:\d+)", pre, re.I)
-            okn_date = md.group(1) if md else ""
-            dnr = md.group(2) if md else ""
+            # Diarienummer + nämndens beslutsdatum står i rubriken strax före blocket.
+            # Flera format förekommer genom åren, alla giltiga:
+            #   "Beslut: 2018-10-18 Dnr: 2018:1034"   (modernt)
+            #   "Beslut: 2025-09-25, dnr 2025:532"     (komma, gemener, ev. utan kolon)
+            #   "Dnr: 07:490" (tvåsiffrigt år), "Dnr: 2015-65" (bindestreck),
+            #   "Dnr: A 64" (1990-talsformat), "Dnr: 304" (bara nummer)
+            # Rubriken rensas på taggar/&nbsp; först. Matchningen förankras mot
+            # ISO-datumet (rubrik-specifikt) så att brödtextens citat av ANDRA besluts
+            # diarienummer aldrig fångas. Sista träffen = närmast blocket.
+            pre = re.sub(r"\s+", " ", H.unescape(re.sub(r"<[^>]+>", " ", html[max(0, ws - 450):ws])))
+            heads = re.findall(
+                r"Beslut[:\s]+(\d{4}-\d{2}-\d{2})[\s,]{1,6}dnr[:\s]*"
+                r"((?:[A-ZÅÄÖ]\s)?\d{1,4}(?:[:\-/]\d+)?)", pre, re.I)
+            okn_date, dnr = (heads[-1][0], heads[-1][1].strip()) if heads else ("", "")
             cs = html.find('<div class="ReadMoreBlock collapse', ws)
             text = strip_tags_text(match_div(html, cs))
-            # Reserv: diarienummer i brödtexten (kräver "dnr"-nyckelord).
-            if not dnr:
-                mb = re.search(r"\bdnr\.?:?\s*(\d{4}:\d+)", text, re.I)
-                if mb:
-                    dnr = mb.group(1)
             ap = re.search(r"eslut den (\d{1,2} (?:" + "|".join(MONTHS) + r") \d{4})", text)
             appealed_date = parse_sv_date(ap.group(1)) if ap else ""
             mo = re.search(r"Överklagandenämnden (avslår|avvisar|bifaller|undanröjer|återförvisar|upphäver)", text)
