@@ -9,16 +9,16 @@
 /*@FONTFACE@*/
   :root{
     --bg:#f8f9fa; --card:#fff; --ink:#212529; --muted:#6c757d; --line:#dee2e6;
-    --brand:#8b212a; --brand-700:#6f1a22; --brand-soft:#f5e7e8;
+    --brand:#8b212a; --brand-700:#6f1a22; --brand-soft:#f2d2d7;
     --accent:#006399; --accent-soft:#e3eef5;
-    --ok:#137870; --ok-soft:#e6f5f2; --warn:#8b212a; --warn-soft:#f5e7e8;
+    --ok:#137870; --ok-soft:#e6f5f2; --warn:#8b212a; --warn-soft:#f2d2d7;
     --hi:#fff3bf; --shadow:0 1px 3px rgba(16,24,40,.08),0 1px 2px rgba(16,24,40,.04);
     --sans:"Mulish",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
   }
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);color:var(--ink);
        font:400 1.0625rem/1.5 var(--sans);}
-  header.top{background:#fff;border-bottom:3px solid var(--brand);padding:22px 20px 20px;}
+  header.top{background:var(--brand-soft);border-bottom:3px solid var(--brand);padding:22px 20px 20px;}
   .wrap{max-width:920px;margin:0 auto;padding:0 16px;}
   header.top .logo{height:56px;width:auto;display:block;margin-bottom:14px;cursor:pointer}
   header.top .logo:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:4px}
@@ -30,7 +30,7 @@
   .count-pill::after{content:"›";font-size:1.05rem;line-height:1;transform:translateY(-1px)}
   .count-pill:hover{background:var(--brand-700)}
   .count-pill:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-  .count-pill.revealed{background:var(--brand-soft);color:var(--brand-700);cursor:default}
+  .count-pill.revealed{background:var(--card);color:var(--brand-700);cursor:default}
   .count-pill.revealed::after{content:""}
 
   .searchbar{position:relative;margin:18px 0 6px}
