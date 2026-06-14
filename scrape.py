@@ -128,8 +128,44 @@ def parse_sv_date(s):
     return f"{y:04d}-{mo:02d}-{d:02d}"
 
 
+def build_topic_map(pages):
+    """Karta {undersidans path: synlig rubrik} från kategoriernas landningssidor.
+
+    På sajten stämmer inte alltid URL-slug och den rubrik besökaren ser överens
+    (t.ex. går rubriken "Särskilt stöd" till .../atgardsprogram/). Länken wrappar
+    rubriken, så href:en står precis före sin <h2>; vi parar därför varje länk med
+    NÄSTA rubrik.
+    """
+    tmap = {}
+    skip = ("cookie", "kontakt", "webbplats", "dela")
+    for path, html in pages.items():
+        parts = path.strip("/").split("/")[1:]
+        if len(parts) != 1:           # bara landningssidor (/vagledande-beslut/KATEGORI/)
+            continue
+        cat = parts[0]
+        toks = []
+        for m in re.finditer(
+                r'<h2[^>]*>(.*?)</h2>|href="/vagledande-beslut/' + re.escape(cat) + r'/([^"/]+)/"',
+                html, re.S):
+            if m.group(1) is not None:
+                t = strip_tags_text(m.group(1))
+                if t and not any(x in t.lower() for x in skip):
+                    toks.append(("H", t))
+            elif m.group(2):
+                toks.append(("L", m.group(2)))
+        for i, (typ, val) in enumerate(toks):
+            if typ != "L":
+                continue
+            for typ2, val2 in toks[i + 1:]:
+                if typ2 == "H":
+                    tmap.setdefault(f"/vagledande-beslut/{cat}/{val}/", val2)
+                    break
+    return tmap
+
+
 def extract(pages):
     decisions = []
+    tmap = build_topic_map(pages)
     wrap = re.compile(r'<div class="ReadMoreBlock-wrapper title">', re.I)
     for path, html in sorted(pages.items()):
         parts = path.strip("/").split("/")[1:]  # släpp 'vagledande-beslut'
@@ -171,7 +207,7 @@ def extract(pages):
                 "category": cat,
                 "categoryLabel": CAT_LABELS.get(cat, cat),
                 "topic": sub,
-                "topicLabel": title_case(sub),
+                "topicLabel": tmap.get(path) or title_case(sub),
                 "sourceUrl": BASE + path + ("#" + anchor if anchor else ""),
                 "text": text,
             })

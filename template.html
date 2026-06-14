@@ -55,6 +55,7 @@
   .filters{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0 4px}
   .filters select{padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);
       font:inherit;color:var(--ink);box-shadow:var(--shadow)}
+  .filters select:disabled{opacity:.5;cursor:not-allowed}
   .filters .reset{margin-left:auto;border:0;background:none;color:var(--accent);cursor:pointer;font:inherit;padding:9px 4px}
   .resultmeta{font-size:.88rem;color:var(--muted);margin:14px 4px 6px}
 
@@ -107,6 +108,7 @@
 
   <div class="filters">
     <select id="fCat" aria-label="Filtrera på skolform"><option value="">Alla skolformer</option></select>
+    <select id="fTopic" aria-label="Filtrera på underrubrik" disabled><option value="">Alla underrubriker</option></select>
     <select id="fOut" aria-label="Filtrera på utfall"><option value="">Alla utfall</option></select>
     <select id="fYear" aria-label="Filtrera på år"><option value="">Alla år</option></select>
     <button class="reset" id="reset">Återställ</button>
@@ -146,7 +148,7 @@ DATA.forEach(d=>{
 
 const $ = s=>document.querySelector(s);
 const elQ=$("#q"), elAc=$("#ac"), elList=$("#list"), elMeta=$("#resultMeta"),
-      elCat=$("#fCat"), elOut=$("#fOut"), elYear=$("#fYear");
+      elCat=$("#fCat"), elTopic=$("#fTopic"), elOut=$("#fOut"), elYear=$("#fYear");
 
 const elPill = $("#countPill");
 elPill.textContent = DATA.length + " vägledande beslut";
@@ -165,6 +167,20 @@ elPill.addEventListener("click",()=>{
   .forEach(o=>elOut.add(new Option(OUT_LABEL[o]||o,o)));
 [...new Set(DATA.map(d=>d._year).filter(Boolean))].sort((a,b)=>b-a)
   .forEach(y=>elYear.add(new Option(y,y)));
+
+// Underrubriker beror på vald skolform – fylls om varje gång skolform ändras.
+function populateTopics(){
+  elTopic.length = 1;                       // behåll "Alla underrubriker"
+  const cat = elCat.value;
+  const topics = cat
+    ? [...new Set(DATA.filter(d=>d.categoryLabel===cat && d.topicLabel).map(d=>d.topicLabel))]
+        .sort((a,b)=>a.localeCompare(b,"sv"))
+    : [];
+  topics.forEach(t=>elTopic.add(new Option(t,t)));
+  elTopic.value = "";
+  elTopic.disabled = topics.length === 0;   // grå/inaktiv om skolformen saknar underrubriker
+}
+populateTopics();
 
 let acItems=[], acIndex=-1, revealed=false;
 
@@ -200,16 +216,17 @@ function snippetAround(text, qn){
 }
 
 function currentFilters(){
-  return {cat:elCat.value, out:elOut.value, year:elYear.value, qn:norm(elQ.value.trim())};
+  return {cat:elCat.value, topic:elTopic.value, out:elOut.value, year:elYear.value, qn:norm(elQ.value.trim())};
 }
 
 function filtered(){
   const f=currentFilters();
   let r=DATA.filter(d=>
-    (!f.cat || d.categoryLabel===f.cat) &&
-    (!f.out || d.outcome===f.out) &&
-    (!f.year|| d._year===f.year) &&
-    (!f.qn  || score(d,f.qn)>0));
+    (!f.cat   || d.categoryLabel===f.cat) &&
+    (!f.topic || d.topicLabel===f.topic) &&
+    (!f.out   || d.outcome===f.out) &&
+    (!f.year  || d._year===f.year) &&
+    (!f.qn    || score(d,f.qn)>0));
   if(f.qn) r.sort((a,b)=>score(b,f.qn)-score(a,f.qn) || (b.oknDate||"").localeCompare(a.oknDate||""));
   else     r.sort((a,b)=>(b.oknDate||b.appealedDate||"").localeCompare(a.oknDate||a.appealedDate||""));
   return {rows:r, f};
@@ -238,7 +255,7 @@ function card(d, qn){
 
 function render(){
   const {rows,f}=filtered();
-  const active = f.qn||f.cat||f.out||f.year;
+  const active = f.qn||f.cat||f.topic||f.out||f.year;
   // Förstasidan är tom tills man trycker på antalsknappen eller söker/filtrerar.
   if(!active && !revealed){
     elMeta.textContent = "";
@@ -259,7 +276,7 @@ function buildAc(){
   if(qn.length<3){ closeAc(); return; }
   const f=currentFilters();
   acItems = DATA
-    .filter(d=> (!f.cat||d.categoryLabel===f.cat)&&(!f.out||d.outcome===f.out)&&(!f.year||d._year===f.year))
+    .filter(d=> (!f.cat||d.categoryLabel===f.cat)&&(!f.topic||d.topicLabel===f.topic)&&(!f.out||d.outcome===f.out)&&(!f.year||d._year===f.year))
     .map(d=>({d,s:score(d,qn)})).filter(x=>x.s>0)
     .sort((a,b)=>b.s-a.s || (b.d.oknDate||"").localeCompare(a.d.oknDate||""))
     .slice(0,8).map(x=>x.d);
@@ -318,9 +335,10 @@ document.addEventListener("click",e=>{
   if(tg){ const f=document.getElementById("full-"+tg.dataset.i);
     const op=f.classList.toggle("open"); tg.textContent= op?"Dölj beslutet ▴":"Visa hela beslutet ▾"; }
 });
-[elCat,elOut,elYear].forEach(s=>s.addEventListener("change",()=>{ render(); buildAc(); }));
+elCat.addEventListener("change",()=>{ populateTopics(); render(); buildAc(); });
+[elTopic,elOut,elYear].forEach(s=>s.addEventListener("change",()=>{ render(); buildAc(); }));
 function resetToStart(scroll){
-  elQ.value=""; elCat.value=""; elOut.value=""; elYear.value="";
+  elQ.value=""; elCat.value=""; elOut.value=""; elYear.value=""; populateTopics();
   revealed=false; elPill.classList.remove("revealed"); closeAc(); render();
   if(scroll) window.scrollTo({top:0,behavior:"smooth"});
 }
